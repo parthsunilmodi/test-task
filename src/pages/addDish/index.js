@@ -71,15 +71,6 @@ const AddDish = ({ history }) => {
     return !name || !quantity || !unit || !steps || !picture;
   };
 
-  const validateDish = () => {
-    const errorList = {
-      ...errors,
-      dishName: !formData.dishName,
-    };
-    setError({ ...errorList });
-    return !formData.dishName;
-  };
-
   const onRemove = index => () => {
     const data = ingredientDataArr;
     setIngredientDataArr([...data.slice(0, index), ...data.slice(index + 1)]);
@@ -94,23 +85,20 @@ const AddDish = ({ history }) => {
   };
 
   const addDish = () => {
-    const isError = validateDish();
-    let isValid = true;
-    if (!isError) {
-      Object.values(errors).forEach(val => {
-        if (val === true) {
-          isValid = false;
-        }
-      });
-      if (isValid && Object.keys(ingredientData).length > 0) {
-        addIngredient();
-        dispatch(recepiesActions.getRecepiesData({ ...formData, ingredients: [{ ...ingredientData }] }));
-        history.push('/list');
-      }
-      if (isValid && ingredientDataArr.length > 0 && Object.keys(ingredientData).length === 0) {
-        dispatch(recepiesActions.getRecepiesData({ ...formData, ingredients: [...ingredientDataArr] }));
-        history.push('/list');
-      }
+    const isError = validateIngredients();
+    if (ingredientDataArr.length > 0 && !Object.keys(ingredientData).length && formData.dishName) {
+      dispatch(recepiesActions.getRecepiesData({ ...formData, ingredients: [...ingredientDataArr] }));
+      history.push('/list');
+    }
+    if (!isError && ingredientDataArr.length === 0 && !Object.keys(ingredientDataArr).length) {
+      dispatch(recepiesActions.getRecepiesData({ ...formData, ingredients: [{ ...ingredientData }] }));
+      history.push('/list');
+    }
+    if (!isError && ingredientDataArr.length > 0 && Object.keys(ingredientDataArr).length) {
+      dispatch(
+        recepiesActions.getRecepiesData({ ...formData, ingredients: [...ingredientDataArr, { ...ingredientData }] }),
+      );
+      history.push('/list');
     }
   };
 

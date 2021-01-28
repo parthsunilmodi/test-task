@@ -30,7 +30,6 @@ const useStyles = makeStyles(theme => ({
   },
   gridList: {
     width: '90%',
-    height: '100vh',
   },
   card: {
     marginRight: '8px',
@@ -40,6 +39,7 @@ const useStyles = makeStyles(theme => ({
     borderStyle: 'solid',
     textAlign: 'center',
     marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
     fontWeight: 'bold',
   },
   autoComplete: {
@@ -102,7 +102,7 @@ const Dashboard = ({ history }) => {
         </Tooltip>
       </div>
       <div className={classes.root}>
-        <GridList cellHeight={50} className={classes.gridList} cols={4}>
+        <GridList cellHeight={20} className={classes.gridList} cols={4}>
           {!!listRef.length === 0 && <div>No Records Found...</div>}
           {(listRef || []).map(list => (
             <div className={classes.card}>{list.dishName}</div>
