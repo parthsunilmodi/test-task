@@ -1,10 +1,10 @@
 import { handleActions } from 'redux-actions';
-import chartActions from './actions';
+import recepiesActions from './actions';
 
-export const hotelReducer = handleActions(
+export const recepiesReducer = handleActions(
   new Map([
     [
-      chartActions.setLoading,
+      recepiesActions.setLoading,
       (state, action) => ({
         ...state,
         loading: action.payload,
@@ -12,7 +12,7 @@ export const hotelReducer = handleActions(
       }),
     ],
     [
-      chartActions.setFailure,
+      recepiesActions.setFailure,
       (state, action) => ({
         ...state,
         loading: false,
@@ -20,19 +20,19 @@ export const hotelReducer = handleActions(
       }),
     ],
     [
-      chartActions.setWeatherData,
+      recepiesActions.setRecepiesData,
       (state, action) => ({
         ...state,
         loading: false,
-        weatherData: action.payload,
+        recepiesData: action.payload,
       }),
     ],
   ]),
   {
     loading: false,
     error: null,
-    weatherData: [],
+    recepiesData: [],
   },
 );
 
-export default hotelReducer;
+export default recepiesReducer;

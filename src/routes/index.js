@@ -10,8 +10,8 @@ const Routes = () => (
   <Provider store={store}>
     <BrowserRouter>
       <Switch>
-        <PrivateRoute exact path="/" component={Dashboard} />
-        <PrivateRoute exact path="/add-dish" component={AddDish} />
+        <PrivateRoute exact path="/" component={AddDish} />
+        <PrivateRoute exact path="/list" component={Dashboard} />
       </Switch>
     </BrowserRouter>
   </Provider>

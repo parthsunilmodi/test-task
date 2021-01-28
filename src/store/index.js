@@ -2,11 +2,11 @@ import { combineReducers } from 'redux';
 import { persistStore, persistReducer } from 'redux-persist';
 import { connectRouter } from 'connected-react-router';
 import storage from 'redux-persist/lib/storage';
+// eslint-disable-next-line import/no-named-as-default
+import recepiesReducer from './recepies/reducers';
 
 import configureStore from './config';
 import history from './history';
-
-import chartReducer from './chart/reducers';
 
 const rootPersistConfig = {
   key: 'root',
@@ -17,12 +17,12 @@ const rootPersistConfig = {
 const rootReducer = persistReducer(
   rootPersistConfig,
   combineReducers({
-    chart: persistReducer(
+    recepies: persistReducer(
       {
         key: 'chart',
         storage,
       },
-      chartReducer,
+      recepiesReducer,
     ),
     router: connectRouter(history),
   }),
