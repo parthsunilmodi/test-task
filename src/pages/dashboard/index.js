@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import { Button, Tooltip, GridList, TextField } from '@material-ui/core';
+import {
+  Button,
+  Tooltip,
+  TextField,
+  Table,
+  TableContainer,
+  TableRow,
+  TableCell,
+  TableHead,
+  Paper,
+  TableBody,
+} from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import Row from './Row';
 import { getRecepiesList } from '../../store/recepies/selector';
 
 const useStyles = makeStyles(theme => ({
@@ -26,7 +38,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'space-around',
     overflow: 'hidden',
     backgroundColor: theme.palette.background.paper,
-    marginTop: theme.spacing(2),
+    marginTop: theme.spacing(7),
   },
   gridList: {
     width: '90%',
@@ -48,6 +60,13 @@ const useStyles = makeStyles(theme => ({
   },
   text: {
     width: '100%',
+  },
+  table: {
+    width: '55%',
+  },
+  title: {
+    color: '#3f51b5',
+    textAlign: 'center',
   },
 }));
 
@@ -73,6 +92,18 @@ const Dashboard = ({ history }) => {
     const filterdValue = recepiesList.filter(list => list.ingredients.find(val => values.includes(val.name)));
     setListRef([...filterdValue]);
   };
+
+  const rows = listRef.map(list => ({
+    DishName: list.dishName,
+    TotalIngredients: list?.ingredients?.length,
+    history: list?.ingredients.map(ing => ({
+      IngredientsName: ing.name,
+      Quantity: ing.quantity,
+      unit: ing.unit,
+      steps: ing.steps,
+      picture: ing.picture,
+    })),
+  }));
 
   return (
     <div>
@@ -101,13 +132,24 @@ const Dashboard = ({ history }) => {
           </Button>
         </Tooltip>
       </div>
+      <h1 className={classes.title}>List of Recipes</h1>
       <div className={classes.root}>
-        <GridList cellHeight={20} className={classes.gridList} cols={4}>
-          {!!listRef.length === 0 && <div>No Records Found...</div>}
-          {(listRef || []).map(list => (
-            <div className={classes.card}>{list.dishName}</div>
-          ))}
-        </GridList>
+        <TableContainer component={Paper} className={classes.table}>
+          <Table aria-label="collapsible table">
+            <TableHead>
+              <TableRow>
+                <TableCell />
+                <TableCell>Dish name</TableCell>
+                <TableCell>Total Number of Ingredients</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(rows || []).map(row => (
+                <Row key={row.DishName} row={row} />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </div>
     </div>
   );
