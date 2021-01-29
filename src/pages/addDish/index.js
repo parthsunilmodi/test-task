@@ -1,17 +1,8 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  TextField,
-  Grid,
-  Button,
-  FormControl,
-  InputLabel,
-  OutlinedInput,
-  InputAdornment,
-  IconButton,
-} from '@material-ui/core';
-import DeleteForeverRoundedIcon from '@material-ui/icons/DeleteForeverRounded';
+import { TextField, Grid, Button, Divider, Snackbar } from '@material-ui/core';
+import MuiAlert from '@material-ui/lab/Alert';
 import recepiesActions from '../../store/recepies/actions';
 import { getRecepiesList } from '../../store/recepies/selector';
 
@@ -24,39 +15,65 @@ const useStyles = makeStyles(theme => ({
   },
   btnWrap: {
     width: '100%',
-    height: '56px',
+    height: '45px',
   },
   btnWrapper: {
     textAlign: 'end',
+  },
+  ingredient: {
+    marginTop: theme.spacing(3),
   },
 }));
 
 const AddDish = ({ history }) => {
   const recepiesList = useSelector(getRecepiesList);
-  const [formData, setFormData] = useState({});
-  const [ingredientData, setIngredientData] = useState({});
-  const [ingredientDataArr, setIngredientDataArr] = useState([]);
-  const [errors, setError] = useState({});
+  const [formData, setFormData] = useState({
+    dishName: '',
+    ingredients: [
+      {
+        id: 0,
+        name: '',
+        quantity: '',
+        unit: '',
+        steps: '',
+        picture: '',
+      },
+    ],
+  });
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState(false);
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const onDataChange = (name, type) => e => {
+  const Alert = props => <MuiAlert elevation={6} variant="filled" {...props} />;
+
+  const onDataChange = (name, id) => e => {
+    // eslint-disable-next-line no-debugger
+    debugger;
     const { value } = e.target;
-    if (type) {
-      setIngredientData({
-        ...ingredientData,
-        [name]: value,
-      });
+    if (id >= 0) {
+      const index = formData?.ingredients.findIndex(item => item.id === id);
+      if (index !== -1) {
+        setFormData({
+          ...formData,
+          ingredients: [
+            ...formData.ingredients.slice(0, index),
+            { ...formData.ingredients[index], [name]: value },
+            ...formData.ingredients.slice(index + 1),
+          ],
+        });
+      }
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
+      setFormData({ ...formData, [name]: value });
     }
   };
 
   const validateIngredients = () => {
-    const { name, quantity, unit, steps, picture } = ingredientData;
+    // eslint-disable-next-line no-debugger
+    debugger;
+    const { name = '', quantity = '', unit = '', steps = '', picture = '' } = formData?.ingredients[
+      formData?.ingredients.length - 1
+    ];
     const { dishName } = formData;
     const errorList = {
       ...errors,
@@ -67,37 +84,47 @@ const AddDish = ({ history }) => {
       picture: !picture,
       dishName: !dishName,
     };
-    setError({ ...errorList });
+    setErrors({ ...errorList });
     return !name || !quantity || !unit || !steps || !picture;
-  };
-
-  const onRemove = index => () => {
-    const data = ingredientDataArr;
-    setIngredientDataArr([...data.slice(0, index), ...data.slice(index + 1)]);
   };
 
   const addIngredient = () => {
     const isError = validateIngredients();
+    if (isError) {
+      setError(isError);
+    } else {
+      setError(false);
+    }
     if (!isError) {
-      setIngredientDataArr((prevState = []) => [...prevState, ingredientData]);
-      setIngredientData({});
+      const item = {
+        id: formData?.ingredients?.length || 0,
+        name: '',
+        quantity: '',
+        unit: '',
+        steps: '',
+        picture: '',
+      };
+      setFormData({
+        ...formData,
+        ingredients: [...formData.ingredients, { ...item }],
+      });
     }
   };
 
   const addDish = () => {
+    // eslint-disable-next-line no-debugger
+    debugger;
     const isError = validateIngredients();
-    if (ingredientDataArr.length > 0 && !Object.keys(ingredientData).length && formData.dishName) {
-      dispatch(recepiesActions.getRecepiesData({ ...formData, ingredients: [...ingredientDataArr] }));
-      history.push('/list');
-    }
-    if (!isError && ingredientDataArr.length === 0 && !Object.keys(ingredientDataArr).length) {
-      dispatch(recepiesActions.getRecepiesData({ ...formData, ingredients: [{ ...ingredientData }] }));
-      history.push('/list');
-    }
-    if (!isError && ingredientDataArr.length > 0 && Object.keys(ingredientDataArr).length) {
-      dispatch(
-        recepiesActions.getRecepiesData({ ...formData, ingredients: [...ingredientDataArr, { ...ingredientData }] }),
-      );
+    if (isError) {
+      if (isError && formData?.ingredients?.length && formData?.ingredients[0].name !== '') {
+        dispatch(recepiesActions.getRecepiesData({ ...formData }));
+        history.push('/list');
+      } else {
+        setError(isError);
+      }
+    } else {
+      setError(false);
+      dispatch(recepiesActions.getRecepiesData({ ...formData }));
       history.push('/list');
     }
   };
@@ -123,97 +150,79 @@ const AddDish = ({ history }) => {
               <Grid item xs={12} className={classes.grid}>
                 <TextField
                   id="dishName"
+                  size="small"
                   label="Name of the dish"
                   variant="outlined"
                   className={classes.textField}
                   value={formData?.dishName || ''}
                   onChange={onDataChange('dishName')}
-                  error={errors?.dishName}
-                  helperText={errors?.dishName && 'Enter Name of the dish'}
                 />
               </Grid>
-              {(ingredientDataArr || []).map((ingredient, key) => (
-                <Grid item xs={12} className={classes.grid}>
-                  <FormControl variant="outlined" className={classes.textField}>
-                    <InputLabel htmlFor="outlined-adornment-password">{`Ingredient ${key + 1}`}</InputLabel>
-                    <OutlinedInput
-                      id="outlined-adornment-password"
-                      value={ingredient?.name}
-                      endAdornment={
-                        <InputAdornment position="end">
-                          <IconButton aria-label="toggle visibility" onClick={onRemove(key)} edge="end">
-                            <DeleteForeverRoundedIcon />
-                          </IconButton>
-                        </InputAdornment>
-                      }
-                      labelWidth={70}
-                    />
-                  </FormControl>
-                </Grid>
+              <Divider />
+              {(formData?.ingredients || []).map(item => (
+                <div className={classes.ingredient}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                        id="name"
+                        size="small"
+                        label="Ingredient name"
+                        variant="outlined"
+                        className={classes.textField}
+                        value={item?.name || ''}
+                        onChange={onDataChange('name', item.id)}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        id="quantity"
+                        size="small"
+                        label="Ingredient quantity"
+                        variant="outlined"
+                        className={classes.textField}
+                        type="number"
+                        value={item?.quantity || ''}
+                        onChange={onDataChange('quantity', item.id)}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        id="unit"
+                        size="small"
+                        label="Unit of measurement for ingredient qty"
+                        variant="outlined"
+                        className={classes.textField}
+                        value={item?.unit || ''}
+                        onChange={onDataChange('unit', item.id)}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        id="steps"
+                        size="small"
+                        label="Steps to cook"
+                        variant="outlined"
+                        className={classes.textField}
+                        multiline
+                        value={item?.steps || ''}
+                        onChange={onDataChange('steps', item.id)}
+                      />
+                    </Grid>
+                    <Grid item xs={12} className={classes.grid}>
+                      <TextField
+                        id="picture"
+                        size="small"
+                        label="Picture of dish in the form of URL"
+                        variant="outlined"
+                        className={classes.textField}
+                        value={item?.picture || ''}
+                        onChange={onDataChange('picture', item.id)}
+                        type="url"
+                      />
+                    </Grid>
+                  </Grid>
+                </div>
               ))}
-              <Grid item xs={12} className={classes.grid}>
-                <TextField
-                  id="name"
-                  label="Ingredient name"
-                  variant="outlined"
-                  className={classes.textField}
-                  value={ingredientData?.name || ''}
-                  onChange={onDataChange('name', 'ingredients')}
-                  error={errors?.name}
-                  helperText={errors?.name && 'Enter Ingredient name'}
-                />
-              </Grid>
-              <Grid item xs={12} className={classes.grid}>
-                <TextField
-                  id="quantity"
-                  label="Ingredient quantity"
-                  variant="outlined"
-                  className={classes.textField}
-                  type="number"
-                  value={ingredientData?.quantity || ''}
-                  onChange={onDataChange('quantity', 'ingredients')}
-                  error={errors?.quantity}
-                  helperText={errors?.quantity && 'Enter Ingredient quantity'}
-                />
-              </Grid>
-              <Grid item xs={12} className={classes.grid}>
-                <TextField
-                  id="unit"
-                  label="Unit of measurement for ingredient qty"
-                  variant="outlined"
-                  className={classes.textField}
-                  value={ingredientData?.unit || ''}
-                  onChange={onDataChange('unit', 'ingredients')}
-                  error={errors?.unit}
-                  helperText={errors?.unit && 'Enter Unit of measurement'}
-                />
-              </Grid>
-              <Grid item xs={12} className={classes.grid}>
-                <TextField
-                  id="steps"
-                  label="Steps to cook"
-                  variant="outlined"
-                  className={classes.textField}
-                  multiline
-                  value={ingredientData?.steps || ''}
-                  onChange={onDataChange('steps', 'ingredients')}
-                  error={errors?.steps}
-                  helperText={errors?.steps && 'Enter Steps'}
-                />
-              </Grid>
-              <Grid item xs={12} className={classes.grid}>
-                <TextField
-                  id="picture"
-                  label="Picture of dish in the form of URL"
-                  variant="outlined"
-                  className={classes.textField}
-                  value={ingredientData?.picture || ''}
-                  onChange={onDataChange('picture', 'ingredients')}
-                  error={errors?.picture}
-                  type="url"
-                  helperText={errors?.picture && 'Enter Picture of dish in the form of URL'}
-                />
-              </Grid>
               <Grid item xs={12} className={classes.grid}>
                 <Button variant="outlined" color="secondary" className={classes.btnWrap} onClick={addIngredient}>
                   Add Another Ingredients
@@ -229,6 +238,15 @@ const AddDish = ({ history }) => {
           <Grid item xs={4} />
         </Grid>
       </div>
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        open={error}
+        onClose={() => setError(!error)}
+        autoHideDuration={6000}
+        key={{ vertical: 'top' } + { horizontal: 'right' }}
+      >
+        <Alert severity="error">Fill all the information...!</Alert>
+      </Snackbar>
     </div>
   );
 };
